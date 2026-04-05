@@ -1,5 +1,189 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Teacher Dashboard — DocIntegrity AI{% endblock %}
+
 {% block content %}
-<p>Teacher dashboard coming soon.</p>
+<div class="di-layout">
+
+  <!-- Sidebar -->
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Teacher panel</div>
+    </div>
+
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'teacher_dashboard' %}" class="di-sidebar-item active-teacher">
+      <div class="si-dot t-active"></div> Dashboard
+    </a>
+    <a href="{% url 'teacher_subjects' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> My subjects
+    </a>
+    <a href="{% url 'teacher_assignments' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> Assignments
+    </a>
+    <a href="{% url 'teacher_submissions' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> Submissions
+    </a>
+
+    <div class="di-sidebar-section">Reports</div>
+    <a href="{% url 'flagged_submissions' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> Flagged list
+    </a>
+
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#059669">
+          {{ request.user.full_name|first }}
+        </div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="di-main">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <div class="di-page-title">Teacher dashboard</div>
+        <div class="di-page-sub">
+          {{ request.user.full_name }} &nbsp;·&nbsp; {{ profile.department }}
+        </div>
+      </div>
+      <a href="{% url 'create_assignment' %}"
+         style="padding:8px 16px;background:#059669;color:#fff;
+                border-radius:8px;font-size:13px;text-decoration:none;font-weight:500">
+        + New assignment
+      </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ total_submissions }}</div>
+          <div class="di-stat-label">Total submissions</div>
+          <span class="di-chip chip-blue">All time</span>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ pending_verification }}</div>
+          <div class="di-stat-label">Pending verification</div>
+          <span class="di-chip chip-yellow">Needs review</span>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ flagged_count }}</div>
+          <div class="di-stat-label">Flagged</div>
+          <span class="di-chip chip-red">Suspicious</span>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ verified_count }}</div>
+          <div class="di-stat-label">Verified</div>
+          <span class="di-chip chip-green">Cleared</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent submissions -->
+    <div class="di-card">
+      <div class="di-card-header">
+        <div class="di-card-title">Recent submissions</div>
+        <a href="{% url 'teacher_submissions' %}" class="di-action-btn">View all</a>
+      </div>
+      <table class="di-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Assignment</th>
+            <th>Subject</th>
+            <th>Submitted</th>
+            <th>HW match</th>
+            <th>AI score</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in recent_submissions %}
+          <tr>
+            <td>{{ sub.student.user.full_name }}</td>
+            <td>{{ sub.assignment.title }}</td>
+            <td>{{ sub.assignment.subject.name }}</td>
+            <td>{{ sub.submitted_at|date:"M d" }}</td>
+            <td>
+              {% if sub.verification %}
+                <div style="font-size:12px;font-weight:500;
+                  color:{% if sub.verification.hw_match_score >= 85 %}#15803d
+                        {% elif sub.verification.hw_match_score >= 50 %}#b45309
+                        {% else %}#dc2626{% endif %}">
+                  {{ sub.verification.hw_match_score|floatformat:0 }}%
+                </div>
+                <div class="score-bar">
+                  <div class="score-fill" style="width:{{ sub.verification.hw_match_score }}%;
+                    background:{% if sub.verification.hw_match_score >= 85 %}#22c55e
+                               {% elif sub.verification.hw_match_score >= 50 %}#f59e0b
+                               {% else %}#ef4444{% endif %}">
+                  </div>
+                </div>
+              {% else %}
+                <span style="font-size:11px;color:#94a3b8">Not run</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if sub.verification %}
+                <div style="font-size:12px;font-weight:500;
+                  color:{% if sub.verification.ai_content_score <= 20 %}#15803d
+                        {% elif sub.verification.ai_content_score <= 60 %}#b45309
+                        {% else %}#dc2626{% endif %}">
+                  {{ sub.verification.ai_content_score|floatformat:0 }}%
+                </div>
+                <div class="score-bar">
+                  <div class="score-fill" style="width:{{ sub.verification.ai_content_score }}%;
+                    background:{% if sub.verification.ai_content_score <= 20 %}#22c55e
+                               {% elif sub.verification.ai_content_score <= 60 %}#f59e0b
+                               {% else %}#ef4444{% endif %}">
+                  </div>
+                </div>
+              {% else %}
+                <span style="font-size:11px;color:#94a3b8">Not run</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if sub.status == 'verified' %}
+                <span class="pill pill-green">Verified</span>
+              {% elif sub.status == 'flagged' %}
+                <span class="pill pill-red">Flagged</span>
+              {% elif sub.status == 'rejected' %}
+                <span class="pill pill-red">Rejected</span>
+              {% else %}
+                <span class="pill pill-yellow">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'review_submission' sub.id %}"
+                 class="di-action-btn">Review</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8"
+                style="text-align:center;color:#94a3b8;padding:24px">
+              No submissions yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}
