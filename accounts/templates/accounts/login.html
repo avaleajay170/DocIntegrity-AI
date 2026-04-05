@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="di-navbar">
+    <div class="di-navbar-brand">
+      <div class="di-brand-icon">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="2" width="5" height="5" rx="1" fill="white"/>
+          <rect x="9" y="2" width="5" height="5" rx="1" fill="white" opacity=".6"/>
+          <rect x="2" y="9" width="5" height="5" rx="1" fill="white" opacity=".6"/>
+          <rect x="9" y="9" width="5" height="5" rx="1" fill="white"/>
+        </svg>
+      </div>
+      DocIntegrity AI
+    </div>
+  </div>
+
+  <div class="container py-4">
+    <div class="auth-card">
+      <div class="auth-top text-center">
+        <div class="auth-logo-icon" id="logoIcon"
+             style="background: {% if role == 'teacher' %}#059669{% else %}#1a56db{% endif %}">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <path d="M13 3L4 8v10l9 6 9-6V8L13 3z" stroke="white" stroke-width="1.8" fill="none"/>
+            <path d="M13 13l9-5M13 13v10M13 13L4 8" stroke="white" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <h5 class="fw-500 mb-1" style="font-size:19px">Welcome back</h5>
+        <p style="font-size:13px;color:#64748b;margin-bottom:20px">
+          Sign in to your institute portal
+        </p>
+      </div>
+
+      <!-- Role tabs -->
+      <div class="role-tabs">
+        <button class="role-tab {% if role == 'student' %}active-student{% endif %}"
+                id="tabStudent" onclick="switchRole('student')">
+          <div class="role-tab-icon" style="background:#eff6ff">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <circle cx="6.5" cy="4" r="2.5" stroke="#1a56db" stroke-width="1.2"/>
+              <path d="M1.5 12c0-2.8 2.2-5 5-5s5 2.2 5 5"
+                    stroke="#1a56db" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          Student login
+        </button>
+        <button class="role-tab {% if role == 'teacher' %}active-teacher{% endif %}"
+                id="tabTeacher" onclick="switchRole('teacher')">
+          <div class="role-tab-icon" style="background:#ecfdf5">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <rect x="1.5" y="2" width="10" height="9" rx="1.5"
+                    stroke="#059669" stroke-width="1.2"/>
+              <path d="M4 6h5M4 8h3" stroke="#059669"
+                    stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          Teacher login
+        </button>
+      </div>
+
+      <!-- Student form -->
+      <div class="auth-form" id="formStudent"
+           style="display:{% if role == 'teacher' %}none{% else %}block{% endif %}">
+        {% if error and role == 'student' %}
+        <div class="di-alert di-alert-danger">{{ error }}</div>
+        {% endif %}
+        <div class="info-box-student">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="flex-shrink:0;margin-top:1px">
+            <circle cx="6.5" cy="6.5" r="5.5" stroke="#1a56db" stroke-width="1.1"/>
+            <path d="M6.5 5.5v4M6.5 4v.5" stroke="#1a56db" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          Your credentials are provided by your institute admin.
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="role" value="student">
+          <div class="mb-3">
+            <label class="di-form-label">Student email</label>
+            <input type="email" name="email" class="di-form-control"
+                   placeholder="student@institute.edu" required>
+          </div>
+          <div class="mb-3">
+            <label class="di-form-label">Password</label>
+            <input type="password" name="password" class="di-form-control"
+                   placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-student">Sign in as Student</button>
+        </form>
+      </div>
+
+      <!-- Teacher form -->
+      <div class="auth-form" id="formTeacher"
+           style="display:{% if role == 'teacher' %}block{% else %}none{% endif %}">
+        {% if error and role == 'teacher' %}
+        <div class="di-alert di-alert-danger">{{ error }}</div>
+        {% endif %}
+        <div class="info-box-teacher">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="flex-shrink:0;margin-top:1px">
+            <circle cx="6.5" cy="6.5" r="5.5" stroke="#059669" stroke-width="1.1"/>
+            <path d="M6.5 5.5v4M6.5 4v.5" stroke="#059669" stroke-width="1.1" stroke-linecap="round"/>
+          </svg>
+          Teacher credentials are issued by the institute admin.
+        </div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="role" value="teacher">
+          <div class="mb-3">
+            <label class="di-form-label">Teacher email</label>
+            <input type="email" name="email" class="di-form-control"
+                   placeholder="teacher@institute.edu" required>
+          </div>
+          <div class="mb-3">
+            <label class="di-form-label">Password</label>
+            <input type="password" name="password" class="di-form-control"
+                   placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-teacher">Sign in as Teacher</button>
+        </form>
+      </div>
+
+      <div class="auth-footer-text">
+        DocIntegrity AI — Assignment integrity verification system
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchRole(role) {
+  const isStudent = role === 'student';
+  document.getElementById('tabStudent').className =
+    'role-tab' + (isStudent ? ' active-student' : '');
+  document.getElementById('tabTeacher').className =
+    'role-tab' + (!isStudent ? ' active-teacher' : '');
+  document.getElementById('formStudent').style.display = isStudent ? 'block' : 'none';
+  document.getElementById('formTeacher').style.display = !isStudent ? 'block' : 'none';
+  document.getElementById('logoIcon').style.background =
+    isStudent ? '#1a56db' : '#059669';
+}
+</script>
+{% endblock %}
