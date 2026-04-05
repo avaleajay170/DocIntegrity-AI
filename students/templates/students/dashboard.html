@@ -1,5 +1,168 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Student Dashboard — DocIntegrity AI{% endblock %}
+
 {% block content %}
-<p>Student dashboard coming soon.</p>
+<div class="di-layout">
+
+  <!-- Sidebar -->
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Student panel</div>
+    </div>
+
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'student_dashboard' %}" class="di-sidebar-item active-student">
+      <div class="si-dot s-active"></div> Dashboard
+    </a>
+    <a href="{% url 'student_assignments' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> My assignments
+    </a>
+    <a href="{% url 'student_submissions' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> My submissions
+    </a>
+
+    <div class="di-sidebar-section">Profile</div>
+    <a href="{% url 'upload_sample' %}" class="di-sidebar-item">
+      <div class="si-dot"></div> Handwriting sample
+    </a>
+
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#1a56db">
+          {{ request.user.full_name|first }}
+        </div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="di-main">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <div class="di-page-title">Good day, {{ request.user.full_name }}</div>
+        <div class="di-page-sub">
+          Roll no: {{ profile.roll_number }} &nbsp;·&nbsp;
+          Class {{ profile.class_name }} {{ profile.division }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ pending_count }}</div>
+          <div class="di-stat-label">Pending assignments</div>
+          <span class="di-chip chip-yellow">Action needed</span>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ submitted_count }}</div>
+          <div class="di-stat-label">Submitted</div>
+          <span class="di-chip chip-green">Total submissions</span>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="di-stat">
+          <div class="di-stat-val">{{ flagged_count }}</div>
+          <div class="di-stat-label">Flagged</div>
+          <span class="di-chip chip-red">Needs attention</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Handwriting sample status -->
+    {% if not has_sample %}
+    <div class="upload-box mb-4">
+      <div class="upload-icon">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 13V7M7 10l3-3 3 3" stroke="#1a56db" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="3" y="3" width="14" height="14" rx="3" stroke="#1a56db" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <div style="font-size:13px;font-weight:500;color:#1e293b;margin-bottom:4px">
+        Upload your handwriting reference sample
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:12px">
+        Required before submitting any assignment
+      </div>
+      <a href="{% url 'upload_sample' %}"
+         style="padding:7px 18px;background:#1a56db;color:#fff;border:none;
+                border-radius:7px;font-size:12px;text-decoration:none">
+        Upload now
+      </a>
+    </div>
+    {% else %}
+    <div class="di-alert di-alert-success mb-4">
+      Handwriting reference sample uploaded. You can submit assignments.
+    </div>
+    {% endif %}
+
+    <!-- Recent assignments -->
+    <div class="di-card">
+      <div class="di-card-header">
+        <div class="di-card-title">Recent assignments</div>
+        <a href="{% url 'student_assignments' %}" class="di-action-btn">View all</a>
+      </div>
+      <table class="di-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Title</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in recent_assignments %}
+          <tr>
+            <td>{{ item.assignment.subject.name }}</td>
+            <td>{{ item.assignment.title }}</td>
+            <td>{{ item.assignment.deadline|date:"M d, Y" }}</td>
+            <td>
+              {% if item.submitted %}
+                {% if item.submission.status == 'verified' %}
+                  <span class="pill pill-green">Verified</span>
+                {% elif item.submission.status == 'flagged' %}
+                  <span class="pill pill-red">Flagged</span>
+                {% elif item.submission.status == 'rejected' %}
+                  <span class="pill pill-red">Rejected</span>
+                {% else %}
+                  <span class="pill pill-blue">Submitted</span>
+                {% endif %}
+              {% else %}
+                <span class="pill pill-yellow">Pending</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if item.submitted %}
+                <a href="{% url 'view_submission' item.submission.id %}"
+                   class="di-action-btn">View</a>
+              {% else %}
+                <a href="{% url 'submit_assignment' item.assignment.id %}"
+                   class="di-action-btn">Upload</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">
+              No assignments yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}
