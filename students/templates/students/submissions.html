@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}My Submissions — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Student panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'student_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'student_assignments' %}" class="di-sidebar-item"><div class="si-dot"></div>My assignments</a>
+    <a href="{% url 'student_submissions' %}" class="di-sidebar-item active-student"><div class="si-dot s-active"></div>My submissions</a>
+    <div class="di-sidebar-section">Profile</div>
+    <a href="{% url 'upload_sample' %}" class="di-sidebar-item"><div class="si-dot"></div>Handwriting sample</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#1a56db">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="mb-3">
+      <div class="di-page-title">My submissions</div>
+      <div class="di-page-sub">All your submitted assignments</div>
+    </div>
+
+    <div class="di-card">
+      <table class="di-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th>Assignment</th>
+            <th>Submitted</th>
+            <th>Status</th>
+            <th>Remark</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in submissions %}
+          <tr>
+            <td>{{ sub.assignment.subject.name }}</td>
+            <td>{{ sub.assignment.title }}</td>
+            <td>{{ sub.submitted_at|date:"M d, Y" }}</td>
+            <td>
+              {% if sub.status == 'verified' %}
+                <span class="pill pill-green">Verified</span>
+              {% elif sub.status == 'flagged' %}
+                <span class="pill pill-red">Flagged</span>
+              {% elif sub.status == 'rejected' %}
+                <span class="pill pill-red">Rejected</span>
+              {% else %}
+                <span class="pill pill-yellow">Pending</span>
+              {% endif %}
+            </td>
+            <td style="color:#64748b;font-size:12px">
+              {{ sub.teacher_remark|truncatechars:40|default:"—" }}
+            </td>
+            <td>
+              <a href="{% url 'view_submission' sub.id %}"
+                 class="di-action-btn">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" style="text-align:center;color:#94a3b8;padding:24px">
+              No submissions yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

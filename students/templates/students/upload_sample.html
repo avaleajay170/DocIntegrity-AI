@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Upload Handwriting Sample — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Student panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'student_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'student_assignments' %}" class="di-sidebar-item"><div class="si-dot"></div>My assignments</a>
+    <a href="{% url 'student_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>My submissions</a>
+    <div class="di-sidebar-section">Profile</div>
+    <a href="{% url 'upload_sample' %}" class="di-sidebar-item active-student"><div class="si-dot s-active"></div>Handwriting sample</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#1a56db">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="mb-3">
+      <div class="di-page-title">Handwriting reference sample</div>
+      <div class="di-page-sub">Upload a clear page of your handwriting — used to verify your assignments</div>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="di-alert {% if msg.tags == 'error' %}di-alert-danger{% else %}di-alert-success{% endif %} mb-3">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {% if current_sample %}
+    <div class="di-card mb-4" style="max-width:560px">
+      <div class="di-card-header">
+        <div class="di-card-title">Current reference sample</div>
+        <span class="pill pill-green">Active</span>
+      </div>
+      <div style="padding:16px">
+        <img src="{{ current_sample.image.url }}"
+             style="width:100%;border-radius:8px;border:0.5px solid #e2e8f0"
+             alt="Current handwriting sample">
+        <p style="font-size:12px;color:#64748b;margin-top:8px">
+          Uploaded on {{ current_sample.uploaded_at|date:"M d, Y H:i" }}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="di-card" style="max-width:560px">
+      <div class="di-card-header">
+        <div class="di-card-title">
+          {% if current_sample %}Update sample{% else %}Upload sample{% endif %}
+        </div>
+      </div>
+      <div style="padding:20px">
+        <div style="background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:8px;
+                    padding:10px 14px;margin-bottom:16px;font-size:12px;color:#1e40af">
+          <strong>Instructions:</strong> Write 3–4 lines of any text naturally on a plain white paper.
+          Scan or photograph clearly. Make sure the image is not blurry.
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="di-form-label">Select image <span style="color:#dc2626">*</span></label>
+            <input type="file" name="image" accept="image/*"
+                   class="di-form-control" required>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px">
+              JPG, PNG supported · Max 5MB
+            </div>
+          </div>
+          <button type="submit" class="btn-student" style="width:auto;padding:10px 24px">
+            {% if current_sample %}Update sample{% else %}Upload sample{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
