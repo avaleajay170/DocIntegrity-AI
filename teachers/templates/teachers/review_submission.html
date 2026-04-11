@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Review Submission — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Teacher panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'teacher_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'teacher_subjects' %}" class="di-sidebar-item"><div class="si-dot"></div>My subjects</a>
+    <a href="{% url 'teacher_assignments' %}" class="di-sidebar-item"><div class="si-dot"></div>Assignments</a>
+    <a href="{% url 'teacher_submissions' %}" class="di-sidebar-item active-teacher"><div class="si-dot t-active"></div>Submissions</a>
+    <div class="di-sidebar-section">Reports</div>
+    <a href="{% url 'flagged_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>Flagged list</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#059669">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <div class="di-page-title">Review submission</div>
+        <div class="di-page-sub">
+          {{ submission.student.user.full_name }} —
+          {{ submission.assignment.subject.name }} /
+          {{ submission.assignment.title }}
+        </div>
+      </div>
+      <a href="{% url 'teacher_submissions' %}" class="di-action-btn">
+        Back to submissions
+      </a>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="di-alert {% if msg.tags == 'error' %}di-alert-danger{% else %}di-alert-success{% endif %} mb-3">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row g-3">
+
+      <!-- Left column: student info + files -->
+      <div class="col-md-7">
+
+        <!-- Student info -->
+        <div class="di-card mb-3">
+          <div class="di-card-header">
+            <div class="di-card-title">Student information</div>
+            {% if submission.status == 'verified' %}
+              <span class="pill pill-green">Verified</span>
+            {% elif submission.status == 'flagged' %}
+              <span class="pill pill-red">Flagged</span>
+            {% elif submission.status == 'rejected' %}
+              <span class="pill pill-red">Rejected</span>
+            {% else %}
+              <span class="pill pill-yellow">Pending</span>
+            {% endif %}
+          </div>
+          <div style="padding:16px;font-size:13px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <div style="color:#64748b;font-size:11px">Student name</div>
+              <div style="font-weight:500">{{ submission.student.user.full_name }}</div>
+            </div>
+            <div>
+              <div style="color:#64748b;font-size:11px">Roll number</div>
+              <div style="font-weight:500">{{ submission.student.roll_number }}</div>
+            </div>
+            <div>
+              <div style="color:#64748b;font-size:11px">Class</div>
+              <div style="font-weight:500">{{ submission.student.class_name }} {{ submission.student.division }}</div>
+            </div>
+            <div>
+              <div style="color:#64748b;font-size:11px">Submitted on</div>
+              <div style="font-weight:500">{{ submission.submitted_at|date:"M d, Y H:i" }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side by side files -->
+        <div class="row g-3">
+          <!-- Reference sample -->
+          <div class="col-md-6">
+            <div class="di-card">
+              <div class="di-card-header">
+                <div class="di-card-title">Reference sample</div>
+                <span class="pill pill-blue">Stored</span>
+              </div>
+              <div style="padding:12px">
+                {% if reference_sample %}
+                  <img src="{{ reference_sample.image.url }}"
+                       style="width:100%;border-radius:8px;border:0.5px solid #e2e8f0"
+                       alt="Reference handwriting sample">
+                {% else %}
+                  <div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px">
+                    No reference sample uploaded by student.
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Submitted assignment -->
+          <div class="col-md-6">
+            <div class="di-card">
+              <div class="di-card-header">
+                <div class="di-card-title">Submitted assignment</div>
+              </div>
+              <div style="padding:12px">
+                {% if submission.image.name|lower|slice:"-4:" == ".pdf" %}
+                  <div style="text-align:center;padding:24px;background:#f8fafc;
+                              border-radius:8px;border:0.5px solid #e2e8f0">
+                    <div style="font-size:36px;margin-bottom:8px">📄</div>
+                    <div style="font-size:13px;font-weight:500;margin-bottom:10px">
+                      PDF Assignment
+                    </div>
+                    <a href="{{ submission.image.url }}" target="_blank"
+                       class="btn-teacher"
+                       style="width:auto;padding:7px 16px;text-decoration:none;
+                              display:inline-block;font-size:12px">
+                      Open PDF
+                    </a>
+                  </div>
+                {% else %}
+                  <img src="{{ submission.image.url }}"
+                       style="width:100%;border-radius:8px;border:0.5px solid #e2e8f0"
+                       alt="Submitted assignment">
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column: scores + action -->
+      <div class="col-md-5">
+
+        <!-- Verification scores -->
+        <div class="di-card mb-3">
+          <div class="di-card-header">
+            <div class="di-card-title">Verification scores</div>
+          </div>
+          <div style="padding:16px">
+            {% if submission.verification %}
+              <!-- HW Match Score -->
+              <div style="margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-size:13px;font-weight:500">Handwriting match</span>
+                  <span style="font-size:13px;font-weight:500;
+                    color:{% if submission.verification.hw_match_score >= 85 %}#15803d
+                          {% elif submission.verification.hw_match_score >= 50 %}#b45309
+                          {% else %}#dc2626{% endif %}">
+                    {{ submission.verification.hw_match_score|floatformat:1 }}%
+                  </span>
+                </div>
+                <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+                  <div style="height:100%;border-radius:4px;width:{{ submission.verification.hw_match_score }}%;
+                    background:{% if submission.verification.hw_match_score >= 85 %}#22c55e
+                               {% elif submission.verification.hw_match_score >= 50 %}#f59e0b
+                               {% else %}#ef4444{% endif %}">
+                  </div>
+                </div>
+                <div style="font-size:11px;margin-top:4px;
+                  color:{% if submission.verification.hw_match_score >= 85 %}#15803d
+                        {% elif submission.verification.hw_match_score >= 50 %}#b45309
+                        {% else %}#dc2626{% endif %}">
+                  {{ submission.verification.hw_verdict|title }}
+                </div>
+              </div>
+
+              <!-- AI Content Score -->
+              <div style="margin-bottom:16px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                  <span style="font-size:13px;font-weight:500">AI content detected</span>
+                  <span style="font-size:13px;font-weight:500;
+                    color:{% if submission.verification.ai_content_score <= 20 %}#15803d
+                          {% elif submission.verification.ai_content_score <= 60 %}#b45309
+                          {% else %}#dc2626{% endif %}">
+                    {{ submission.verification.ai_content_score|floatformat:1 }}%
+                  </span>
+                </div>
+                <div style="height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden">
+                  <div style="height:100%;border-radius:4px;width:{{ submission.verification.ai_content_score }}%;
+                    background:{% if submission.verification.ai_content_score <= 20 %}#22c55e
+                               {% elif submission.verification.ai_content_score <= 60 %}#f59e0b
+                               {% else %}#ef4444{% endif %}">
+                  </div>
+                </div>
+                <div style="font-size:11px;margin-top:4px;
+                  color:{% if submission.verification.ai_content_score <= 20 %}#15803d
+                        {% elif submission.verification.ai_content_score <= 60 %}#b45309
+                        {% else %}#dc2626{% endif %}">
+                  {{ submission.verification.ai_verdict|title }}
+                </div>
+              </div>
+
+              <!-- Extracted text -->
+              {% if submission.verification.extracted_text %}
+              <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid #e2e8f0">
+                <div style="font-size:12px;font-weight:500;margin-bottom:6px">Extracted text (OCR)</div>
+                <div style="font-size:11px;color:#64748b;background:#f8fafc;
+                            border-radius:6px;padding:8px;max-height:100px;overflow-y:auto">
+                  {{ submission.verification.extracted_text|truncatechars:300 }}
+                </div>
+              </div>
+              {% endif %}
+
+            {% else %}
+              <!-- Run verification button -->
+              <div style="text-align:center;padding:16px">
+                <div style="font-size:13px;color:#64748b;margin-bottom:16px">
+                  Verification has not been run yet.
+                </div>
+                <form method="post" action="{% url 'run_verification' submission.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-teacher"
+                          style="width:100%;padding:11px">
+                    Run verification
+                  </button>
+                </form>
+                <div style="font-size:11px;color:#94a3b8;margin-top:8px">
+                  This will check handwriting match and AI content
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Teacher action -->
+        <div class="di-card">
+          <div class="di-card-header">
+            <div class="di-card-title">Take action</div>
+          </div>
+          <div style="padding:16px">
+            <form method="post">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="di-form-label">Update status</label>
+                <select name="status" class="di-form-control">
+                  <option value="">— Select action —</option>
+                  <option value="verified"
+                    {% if submission.status == 'verified' %}selected{% endif %}>
+                    Verified — assignment is authentic
+                  </option>
+                  <option value="flagged"
+                    {% if submission.status == 'flagged' %}selected{% endif %}>
+                    Flagged — suspicious, needs attention
+                  </option>
+                  <option value="rejected"
+                    {% if submission.status == 'rejected' %}selected{% endif %}>
+                    Rejected — not accepted
+                  </option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="di-form-label">Remark to student (optional)</label>
+                <textarea name="remark" class="di-form-control" rows="3"
+                          placeholder="Add a note for the student...">{{ submission.teacher_remark }}</textarea>
+              </div>
+              <button type="submit" class="btn-teacher" style="width:100%">
+                Save decision
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

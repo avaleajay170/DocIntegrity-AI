@@ -1,41 +1,24 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Teacher Dashboard — DocIntegrity AI{% endblock %}
+{% block title %}Submissions — DocIntegrity AI{% endblock %}
 
 {% block content %}
 <div class="di-layout">
-
-  <!-- Sidebar -->
   <div class="di-sidebar">
     <div class="di-sidebar-header">
       <div class="di-sidebar-logo">DocIntegrity AI</div>
       <div class="di-sidebar-role">Teacher panel</div>
     </div>
-
     <div class="di-sidebar-section">Main</div>
-    <a href="{% url 'teacher_dashboard' %}" class="di-sidebar-item active-teacher">
-      <div class="si-dot t-active"></div> Dashboard
-    </a>
-    <a href="{% url 'teacher_subjects' %}" class="di-sidebar-item">
-      <div class="si-dot"></div> My subjects
-    </a>
-    <a href="{% url 'teacher_assignments' %}" class="di-sidebar-item">
-      <div class="si-dot"></div> Assignments
-    </a>
-    <a href="{% url 'teacher_submissions' %}" class="di-sidebar-item">
-      <div class="si-dot"></div> Submissions
-    </a>
-
+    <a href="{% url 'teacher_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'teacher_subjects' %}" class="di-sidebar-item"><div class="si-dot"></div>My subjects</a>
+    <a href="{% url 'teacher_assignments' %}" class="di-sidebar-item"><div class="si-dot"></div>Assignments</a>
+    <a href="{% url 'teacher_submissions' %}" class="di-sidebar-item active-teacher"><div class="si-dot t-active"></div>Submissions</a>
     <div class="di-sidebar-section">Reports</div>
-    <a href="{% url 'flagged_submissions' %}" class="di-sidebar-item">
-      <div class="si-dot"></div> Flagged list
-    </a>
-
+    <a href="{% url 'flagged_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>Flagged list</a>
     <div class="di-sidebar-footer">
       <div style="display:flex;align-items:center;gap:8px">
-        <div class="user-avatar" style="background:#059669">
-          {{ request.user.full_name|first }}
-        </div>
+        <div class="user-avatar" style="background:#059669">{{ request.user.full_name|first }}</div>
         <div>
           <div class="user-name">{{ request.user.full_name }}</div>
           <div class="user-email">{{ request.user.email }}</div>
@@ -45,60 +28,38 @@
     </div>
   </div>
 
-  <!-- Main content -->
   <div class="di-main">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div>
-        <div class="di-page-title">Teacher dashboard</div>
-        <div class="di-page-sub">
-          {{ request.user.full_name }} &nbsp;·&nbsp; {{ profile.department }}
-        </div>
+        <div class="di-page-title">All submissions</div>
+        <div class="di-page-sub">Review and verify student submissions</div>
       </div>
-      <a href="{% url 'create_assignment' %}"
-         style="padding:8px 16px;background:#059669;color:#fff;
-                border-radius:8px;font-size:13px;text-decoration:none;font-weight:500">
-        + New assignment
-      </a>
-    </div>
-
-    <!-- Stats -->
-    <div class="row g-3 mb-4">
-      <div class="col-md-3">
-        <div class="di-stat">
-          <div class="di-stat-val">{{ total_submissions }}</div>
-          <div class="di-stat-label">Total submissions</div>
-          <span class="di-chip chip-blue">All time</span>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="di-stat">
-          <div class="di-stat-val">{{ pending_verification }}</div>
-          <div class="di-stat-label">Pending verification</div>
-          <span class="di-chip chip-yellow">Needs review</span>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="di-stat">
-          <div class="di-stat-val">{{ flagged_count }}</div>
-          <div class="di-stat-label">Flagged</div>
-          <span class="di-chip chip-red">Suspicious</span>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="di-stat">
-          <div class="di-stat-val">{{ verified_count }}</div>
-          <div class="di-stat-label">Verified</div>
-          <span class="di-chip chip-green">Cleared</span>
-        </div>
+      <!-- Filter -->
+      <div style="display:flex;gap:8px">
+        <a href="{% url 'teacher_submissions' %}"
+           style="padding:7px 14px;border-radius:7px;font-size:12px;text-decoration:none;
+                  {% if not status_filter %}background:#1e293b;color:#fff{% else %}background:#fff;color:#374151;border:0.5px solid #d1d5db{% endif %}">
+          All
+        </a>
+        <a href="?status=pending"
+           style="padding:7px 14px;border-radius:7px;font-size:12px;text-decoration:none;
+                  {% if status_filter == 'pending' %}background:#b45309;color:#fff{% else %}background:#fff;color:#374151;border:0.5px solid #d1d5db{% endif %}">
+          Pending
+        </a>
+        <a href="?status=flagged"
+           style="padding:7px 14px;border-radius:7px;font-size:12px;text-decoration:none;
+                  {% if status_filter == 'flagged' %}background:#dc2626;color:#fff{% else %}background:#fff;color:#374151;border:0.5px solid #d1d5db{% endif %}">
+          Flagged
+        </a>
+        <a href="?status=verified"
+           style="padding:7px 14px;border-radius:7px;font-size:12px;text-decoration:none;
+                  {% if status_filter == 'verified' %}background:#15803d;color:#fff{% else %}background:#fff;color:#374151;border:0.5px solid #d1d5db{% endif %}">
+          Verified
+        </a>
       </div>
     </div>
 
-    <!-- Recent submissions -->
     <div class="di-card">
-      <div class="di-card-header">
-        <div class="di-card-title">Recent submissions</div>
-        <a href="{% url 'teacher_submissions' %}" class="di-action-btn">View all</a>
-      </div>
       <table class="di-table">
         <thead>
           <tr>
@@ -113,12 +74,15 @@
           </tr>
         </thead>
         <tbody>
-          {% for sub in recent_submissions %}
+          {% for sub in submissions %}
           <tr>
-            <td>{{ sub.student.user.full_name }}</td>
-            <td>{{ sub.assignment.title }}</td>
+            <td>
+              <div style="font-weight:500">{{ sub.student.user.full_name }}</div>
+              <div style="font-size:11px;color:#64748b">{{ sub.student.roll_number }}</div>
+            </td>
+            <td>{{ sub.assignment.title|truncatechars:30 }}</td>
             <td>{{ sub.assignment.subject.name }}</td>
-            <td>{{ sub.submitted_at|date:"M d" }}</td>
+            <td>{{ sub.submitted_at|date:"M d, Y" }}</td>
             <td>
               {% if sub.verification %}
                 <div style="font-size:12px;font-weight:500;
@@ -175,9 +139,8 @@
           </tr>
           {% empty %}
           <tr>
-            <td colspan="8"
-                style="text-align:center;color:#94a3b8;padding:24px">
-              No submissions yet.
+            <td colspan="8" style="text-align:center;color:#94a3b8;padding:24px">
+              No submissions found.
             </td>
           </tr>
           {% endfor %}

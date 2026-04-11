@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Flagged Submissions — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Teacher panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'teacher_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'teacher_subjects' %}" class="di-sidebar-item"><div class="si-dot"></div>My subjects</a>
+    <a href="{% url 'teacher_assignments' %}" class="di-sidebar-item"><div class="si-dot"></div>Assignments</a>
+    <a href="{% url 'teacher_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>Submissions</a>
+    <div class="di-sidebar-section">Reports</div>
+    <a href="{% url 'flagged_submissions' %}" class="di-sidebar-item active-teacher"><div class="si-dot t-active"></div>Flagged list</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#059669">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="mb-3">
+      <div class="di-page-title">Flagged submissions</div>
+      <div class="di-page-sub">Submissions marked as suspicious</div>
+    </div>
+
+    <div class="di-card">
+      <table class="di-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Assignment</th>
+            <th>Subject</th>
+            <th>Submitted</th>
+            <th>HW match</th>
+            <th>AI score</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub in submissions %}
+          <tr>
+            <td>
+              <div style="font-weight:500">{{ sub.student.user.full_name }}</div>
+              <div style="font-size:11px;color:#64748b">{{ sub.student.roll_number }}</div>
+            </td>
+            <td>{{ sub.assignment.title|truncatechars:30 }}</td>
+            <td>{{ sub.assignment.subject.name }}</td>
+            <td>{{ sub.submitted_at|date:"M d, Y" }}</td>
+            <td>
+              {% if sub.verification %}
+                <div style="font-size:12px;font-weight:500;color:#dc2626">
+                  {{ sub.verification.hw_match_score|floatformat:0 }}%
+                </div>
+                <div class="score-bar">
+                  <div class="score-fill"
+                       style="width:{{ sub.verification.hw_match_score }}%;background:#ef4444">
+                  </div>
+                </div>
+              {% else %}
+                <span style="font-size:11px;color:#94a3b8">Not run</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if sub.verification %}
+                <div style="font-size:12px;font-weight:500;color:#dc2626">
+                  {{ sub.verification.ai_content_score|floatformat:0 }}%
+                </div>
+                <div class="score-bar">
+                  <div class="score-fill"
+                       style="width:{{ sub.verification.ai_content_score }}%;background:#ef4444">
+                  </div>
+                </div>
+              {% else %}
+                <span style="font-size:11px;color:#94a3b8">Not run</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'review_submission' sub.id %}" class="di-action-btn">Review</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" style="text-align:center;color:#94a3b8;padding:24px">
+              No flagged submissions.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

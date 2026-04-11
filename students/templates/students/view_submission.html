@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}View Submission — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Student panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'student_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'student_assignments' %}" class="di-sidebar-item active-student"><div class="si-dot s-active"></div>My assignments</a>
+    <a href="{% url 'student_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>My submissions</a>
+    <div class="di-sidebar-section">Profile</div>
+    <a href="{% url 'upload_sample' %}" class="di-sidebar-item"><div class="si-dot"></div>Handwriting sample</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#1a56db">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="mb-3">
+      <div class="di-page-title">Submission details</div>
+      <div class="di-page-sub">
+        {{ submission.assignment.subject.name }} — {{ submission.assignment.title }}
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Submission info -->
+      <div class="col-md-5">
+        <div class="di-card">
+          <div class="di-card-header">
+            <div class="di-card-title">Submission info</div>
+            {% if submission.status == 'verified' %}
+              <span class="pill pill-green">Verified</span>
+            {% elif submission.status == 'flagged' %}
+              <span class="pill pill-red">Flagged</span>
+            {% elif submission.status == 'rejected' %}
+              <span class="pill pill-red">Rejected</span>
+            {% else %}
+              <span class="pill pill-yellow">Pending review</span>
+            {% endif %}
+          </div>
+          <div style="padding:16px;font-size:13px">
+            <div style="margin-bottom:8px">
+              <span style="color:#64748b">Subject:</span>
+              <strong>{{ submission.assignment.subject.name }}</strong>
+            </div>
+            <div style="margin-bottom:8px">
+              <span style="color:#64748b">Assignment:</span>
+              {{ submission.assignment.title }}
+            </div>
+            <div style="margin-bottom:8px">
+              <span style="color:#64748b">Submitted on:</span>
+              {{ submission.submitted_at|date:"M d, Y H:i" }}
+            </div>
+            <div style="margin-bottom:12px">
+              <span style="color:#64748b">File:</span>
+              <a href="{{ submission.image.url }}" target="_blank"
+                 style="color:#1a56db;margin-left:4px">
+                View / Download submitted file
+              </a>
+            </div>
+
+            {% if submission.teacher_remark %}
+            <div style="padding:10px;background:#fef2f2;border-radius:8px;
+                        border:0.5px solid #fca5a5;margin-top:8px">
+              <div style="font-size:11px;color:#dc2626;margin-bottom:4px;font-weight:500">
+                Teacher remark
+              </div>
+              <div>{{ submission.teacher_remark }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Re-upload button -->
+            {% if submission.status != 'verified' %}
+            <div style="margin-top:16px;padding-top:16px;border-top:0.5px solid #e2e8f0">
+              <div style="font-size:12px;color:#b45309;background:#fffbeb;
+                          border:0.5px solid #fcd34d;border-radius:8px;
+                          padding:8px 12px;margin-bottom:12px">
+                You can re-upload if you want to replace this submission.
+                Previous file will be deleted.
+              </div>
+              <a href="{% url 'submit_assignment' submission.assignment.id %}?reupload=1"
+                 style="display:inline-block;padding:8px 18px;background:#1a56db;
+                        color:#fff;border-radius:8px;font-size:13px;
+                        text-decoration:none;font-weight:500">
+                Re-upload assignment
+              </a>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- File preview -->
+      <div class="col-md-7">
+        <div class="di-card">
+          <div class="di-card-header">
+            <div class="di-card-title">Submitted file</div>
+          </div>
+          <div style="padding:16px">
+            {% if submission.image.name|lower|slice:"-4:" == ".pdf" %}
+              <div style="text-align:center;padding:32px;background:#f8fafc;
+                          border-radius:8px;border:0.5px solid #e2e8f0">
+                <div style="font-size:40px;margin-bottom:12px">📄</div>
+                <div style="font-size:14px;font-weight:500;color:#1e293b;margin-bottom:8px">
+                  PDF document submitted
+                </div>
+                <a href="{{ submission.image.url }}" target="_blank"
+                   class="btn-student"
+                   style="width:auto;padding:8px 20px;text-decoration:none;
+                          display:inline-block">
+                  Open PDF
+                </a>
+              </div>
+            {% else %}
+              <img src="{{ submission.image.url }}"
+                   style="width:100%;border-radius:8px;border:0.5px solid #e2e8f0"
+                   alt="Submitted assignment">
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <a href="{% url 'student_assignments' %}" class="di-action-btn">
+        Back to assignments
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}Create Assignment — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Teacher panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'teacher_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'teacher_subjects' %}" class="di-sidebar-item"><div class="si-dot"></div>My subjects</a>
+    <a href="{% url 'teacher_assignments' %}" class="di-sidebar-item active-teacher"><div class="si-dot t-active"></div>Assignments</a>
+    <a href="{% url 'teacher_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>Submissions</a>
+    <div class="di-sidebar-section">Reports</div>
+    <a href="{% url 'flagged_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>Flagged list</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#059669">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="mb-3">
+      <div class="di-page-title">Create assignment</div>
+      <div class="di-page-sub">Post a new assignment for your students</div>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="di-alert di-alert-danger mb-3">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    {% if not subjects %}
+    <div class="di-alert di-alert-danger mb-3">
+      You have no subjects yet.
+      <a href="{% url 'create_subject' %}" style="color:#dc2626;font-weight:500">
+        Create a subject first
+      </a>
+    </div>
+    {% else %}
+    <div class="di-card" style="max-width:560px">
+      <div class="di-card-header">
+        <div class="di-card-title">Assignment details</div>
+      </div>
+      <div style="padding:20px">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="di-form-label">Subject <span style="color:#dc2626">*</span></label>
+            <select name="subject" class="di-form-control" required>
+              <option value="">Select subject</option>
+              {% for subject in subjects %}
+              <option value="{{ subject.id }}">
+                {{ subject.name }} ({{ subject.code }}) — Class {{ subject.class_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="di-form-label">Assignment title <span style="color:#dc2626">*</span></label>
+            <input type="text" name="title" class="di-form-control"
+                   placeholder="e.g. Chapter 5 exercises" required>
+          </div>
+          <div class="mb-3">
+            <label class="di-form-label">Description</label>
+            <textarea name="description" class="di-form-control" rows="3"
+                      placeholder="Assignment instructions..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="di-form-label">Deadline <span style="color:#dc2626">*</span></label>
+            <input type="datetime-local" name="deadline" class="di-form-control" required>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn-teacher" style="width:auto;padding:10px 24px">
+              Create assignment
+            </button>
+            <a href="{% url 'teacher_assignments' %}"
+               style="padding:10px 24px;border:0.5px solid #d1d5db;border-radius:8px;
+                      font-size:13px;color:#374151;text-decoration:none">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Upload Handwriting Sample — DocIntegrity AI{% endblock %}
+
+{% block content %}
+<div class="di-layout">
+  <div class="di-sidebar">
+    <div class="di-sidebar-header">
+      <div class="di-sidebar-logo">DocIntegrity AI</div>
+      <div class="di-sidebar-role">Student panel</div>
+    </div>
+    <div class="di-sidebar-section">Main</div>
+    <a href="{% url 'student_dashboard' %}" class="di-sidebar-item"><div class="si-dot"></div>Dashboard</a>
+    <a href="{% url 'student_assignments' %}" class="di-sidebar-item"><div class="si-dot"></div>My assignments</a>
+    <a href="{% url 'student_submissions' %}" class="di-sidebar-item"><div class="si-dot"></div>My submissions</a>
+    <div class="di-sidebar-section">Profile</div>
+    <a href="{% url 'upload_sample' %}" class="di-sidebar-item active-student"><div class="si-dot s-active"></div>Handwriting sample</a>
+    <div class="di-sidebar-footer">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="user-avatar" style="background:#1a56db">{{ request.user.full_name|first }}</div>
+        <div>
+          <div class="user-name">{{ request.user.full_name }}</div>
+          <div class="user-email">{{ request.user.email }}</div>
+        </div>
+      </div>
+      <a href="{% url 'logout' %}" class="logout-link">Sign out</a>
+    </div>
+  </div>
+
+  <div class="di-main">
+    <div class="mb-3">
+      <div class="di-page-title">Handwriting reference sample</div>
+      <div class="di-page-sub">Follow the instructions below carefully before uploading</div>
+    </div>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="di-alert {% if msg.tags == 'error' %}di-alert-danger{% else %}di-alert-success{% endif %} mb-3">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="row g-3">
+
+      <!-- Left: Paragraph to write -->
+      <div class="col-md-7">
+        <div class="di-card">
+          <div class="di-card-header">
+            <div class="di-card-title">Step 1 — Write this paragraph by hand</div>
+          </div>
+          <div style="padding:20px">
+
+            <!-- Instructions -->
+            <div style="background:#eff6ff;border:0.5px solid #bfdbfe;border-radius:8px;
+                        padding:14px 16px;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:500;color:#1e40af;margin-bottom:8px">
+                Instructions — read carefully before writing
+              </div>
+              <div style="font-size:12px;color:#1e40af;line-height:1.8">
+                1. Take a clean white A4 sheet of paper.<br>
+                2. Write the paragraph below <strong>exactly as shown</strong> in your own natural handwriting.<br>
+                3. Write with a <strong>blue or black pen</strong> — do not use pencil.<br>
+                4. Write clearly and at your normal speed — do not try to write differently.<br>
+                5. Do <strong>not</strong> type or print — this must be handwritten.<br>
+                6. Once done, scan or take a clear photo of the page and upload below.
+              </div>
+            </div>
+
+            <!-- The paragraph -->
+            <div style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:10px;padding:20px">
+              <div style="font-size:11px;font-weight:500;color:#b45309;
+                          text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px">
+                Paragraph to copy — write this exactly as shown below
+              </div>
+              <div style="font-size:14px;color:#1e293b;line-height:2;font-family:Georgia,serif">
+                The quick brown fox jumps over the lazy dog near the
+                riverbank. A wizard quietly played jazz and folk music
+                on his xylophone beside the big volcano. Crazy Fredrick
+                bought many very exquisite opal jewels from the pack of
+                dazzling wizards. Five boxing wizards jump quickly across
+                the stage before an audience of zany, jovial people who
+                have gathered from every village and kingdom.<br><br>
+
+                Jack amazed a few girls by dropping the antique bronze
+                vase quite heavily on the floor. My grandfather picks up
+                six quartz crystals from the frozen lake every day just
+                before dusk. Bawds jog, flick quartz, vex nymphs while
+                playing trumpet solos. How vexingly quick daft zebras
+                jump across the wide plain every single morning without
+                fail or hesitation.<br><br>
+
+                Sphinx of black quartz, judge my vow carefully and with
+                great wisdom. Pack my box with five dozen liquor jugs
+                before the journey begins at dawn. The five boxing wizards
+                jump quickly over the lazy brown fox who was sleeping
+                peacefully under the old oak tree near the farmhouse.
+                Amazingly few discotheques provide jukeboxes for
+                the enjoyment of quirky and zealous young visitors.
+              </div>
+            </div>
+
+            <div style="margin-top:12px;padding:10px 14px;background:#f0fdf4;
+                        border:0.5px solid #86efac;border-radius:8px;font-size:12px;color:#15803d">
+              This paragraph contains all 26 letters of the alphabet multiple times.
+              Writing it helps the system accurately learn your unique handwriting style.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Upload form -->
+      <div class="col-md-5">
+
+        {% if current_sample %}
+        <div class="di-card mb-3">
+          <div class="di-card-header">
+            <div class="di-card-title">Current sample</div>
+            <span class="pill pill-green">Active</span>
+          </div>
+          <div style="padding:14px">
+            <img src="{{ current_sample.image.url }}"
+                 style="width:100%;border-radius:8px;border:0.5px solid #e2e8f0"
+                 alt="Current handwriting sample">
+            <p style="font-size:11px;color:#64748b;margin-top:8px;margin-bottom:0">
+              Uploaded: {{ current_sample.uploaded_at|date:"M d, Y H:i" }}
+            </p>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="di-card">
+          <div class="di-card-header">
+            <div class="di-card-title">
+              Step 2 — Upload your handwritten page
+            </div>
+          </div>
+          <div style="padding:20px">
+
+            <div style="background:#fef2f2;border:0.5px solid #fca5a5;border-radius:8px;
+                        padding:10px 14px;margin-bottom:16px;font-size:12px;color:#dc2626">
+              <strong>Important:</strong> Make sure the photo or scan is
+              clear, well-lit, and not blurry. The entire page must be visible.
+            </div>
+
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="mb-3">
+                <label class="di-form-label">
+                  Select your handwritten image
+                  <span style="color:#dc2626">*</span>
+                </label>
+                <input type="file" name="image" accept="image/*"
+                       class="di-form-control" required>
+                <div style="font-size:11px;color:#94a3b8;margin-top:4px">
+                  JPG or PNG only · Max 5MB · Must be a photo or scan of handwriting
+                </div>
+              </div>
+
+              <button type="submit" class="btn-student" style="width:100%;padding:11px">
+                {% if current_sample %}
+                  Update handwriting sample
+                {% else %}
+                  Upload handwriting sample
+                {% endif %}
+              </button>
+            </form>
+
+            <div style="margin-top:14px;padding:10px 14px;background:#f8fafc;
+                        border-radius:8px;font-size:11px;color:#64748b;line-height:1.7">
+              Your handwriting sample is stored securely and is only used
+              to verify that your submitted assignments are written by you.
+              It is never shared with anyone.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
